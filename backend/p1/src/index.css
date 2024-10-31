@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root {
+  --primary-color: rgb(23 21 60); /* Example color (Blue 600) */
+}
+body {
+  background-color: var(--primary-color);
+  color: white;
+}
+.centering {
+  @apply absolute top-2/4 left-2/4 -translate-x-2/4 -translate-y-2/4;
+}
+
+.logoshadow {
+  position: absolute;
+  width: 700px;
+  height: 255px;
+  right: 0;
+  top: 80px;
+  background-color: var(--primary-color);
+  animation-name: logohide;
+  animation-iteration-count: infinite;
+  animation-duration: 1s;
+  animation-direction: alternate;
+}
+@keyframes logohide {
+  from {
+    width: 700px;
+  }
+  to {
+    width: 0px;
+  }
+}
