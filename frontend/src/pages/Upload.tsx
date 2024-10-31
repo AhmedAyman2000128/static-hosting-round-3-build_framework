@@ -1,24 +1,22 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 import logo from "../images/logo.png";
 function Upload() {
-  const [zipfile, setzipfile] = useState(null);
-  const [buildCommand, setBuildCommand] = useState("");
-  const [siteName, setSiteName] = useState("");
-  const navigateToHome = useNavigate();
+  const [zipfile, setzipfile] = useState<File | null>(null);
+  const [buildCommand, setBuildCommand] = useState<string>("");
+  const [siteName, setSiteName] = useState<string>("");
+  const [urlRecieved, setUrlRecieved] = useState<string>("");
 
   async function sendzipfile() {
     if (zipfile === null || buildCommand === "" || siteName === "") {
       alert("please complete information");
       return;
     }
-    let dataToBeSent = new FormData();
-    dataToBeSent
-      .append("zipfile", zipfile)
-      .append("buildCommand", buildCommand)
-      .append("siteName", siteName);
-
+    let dataToBeSent: FormData = new FormData();
+    dataToBeSent.append("zipfile", zipfile);
+    dataToBeSent.append("buildCommand", buildCommand);
+    dataToBeSent.append("siteName", siteName);
+    console.log(dataToBeSent);
     try {
       //api of the backend
       const response = await fetch("http://localhost:3000/upload", {
@@ -27,7 +25,7 @@ function Upload() {
       });
       if (response.ok) {
         const data = await response.json();
-        navigateToHome("/sitesdeployed", { url: { newurl: "u1" } });
+        if (data && data.message) setUrlRecieved(data.message);
       }
     } catch (error) {
       console.log(error);
@@ -45,9 +43,11 @@ function Upload() {
             <div className="p-3 border-2 border-white p-4 rounded-xl">
               <input
                 type="file"
-                accept=".zip" // only accept .zip zipfile
+                accept=".zip"
                 onChange={(event) => {
-                  setzipfile(event.target.files[0]); // single file, so use [0]
+                  if (event.target.files && event.target.files.length > 0) {
+                    setzipfile(event.target.files[0]);
+                  }
                 }}
               />
             </div>
@@ -77,6 +77,11 @@ function Upload() {
             Deploy
           </button>
         </div>
+        {urlRecieved && (
+          <a href={urlRecieved} className="text-center" target="_blank">
+            {urlRecieved}
+          </a>
+        )}
       </div>
     </>
   );
