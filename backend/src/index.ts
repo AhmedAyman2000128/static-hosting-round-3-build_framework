@@ -25,10 +25,21 @@ app.listen(3000, ()=>{
     console.log("Server is Running on port", 3000);
 });
 
-app.post("/upload", upload.single('zipfile'), (req: any, res: any) => {
-    deploy(req.file, req.body.siteName, req.body.buildCommand);
+app.post("/upload", upload.single('zipfile'), async (req: any, res: any) => {
+    try {
+        await deploy(req.file, req.body.siteName, req.body.buildCommand);
+
+    } catch (error) {
+        console.error("Deployment error:", error);
+        res.status(500).json({
+            "success": false,
+            "message": "Deployment failed"
+        });
+    }
     
+    const containerUrl = `https://google.com`;
     res.json({
-        "message": "Waiting for deployment"
+        "success": true,
+        "containerURL": containerUrl
     });
 });
