@@ -14,10 +14,9 @@ function Upload() {
       return;
     }
     let dataToBeSent = new FormData();
-    dataToBeSent
-      .append("zipfile", zipfile)
-      .append("buildCommand", buildCommand)
-      .append("siteName", siteName);
+    dataToBeSent.append("zipfile", zipfile)
+    dataToBeSent.append("buildCommand", buildCommand)
+    dataToBeSent.append("siteName", siteName);
 
     try {
       //api of the backend
@@ -27,7 +26,8 @@ function Upload() {
       });
       if (response.ok) {
         const data = await response.json();
-        navigateToHome("/sitesdeployed", { url: { newurl: "u1" } });
+        console.log(data)
+        // navigateToHome("/sitesdeployed", { url: { newurl: "u1" } });
       }
     } catch (error) {
       console.log(error);
