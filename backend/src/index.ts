@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from "cors";
 import multer from "multer";
-import extract from './controller.js';
+import deploy from './controller.js';
 
 const app = express();
 const storage = multer.diskStorage({
@@ -26,7 +26,7 @@ app.listen(3000, ()=>{
 });
 
 app.post("/upload", upload.single('zipfile'), (req: any, res: any) => {
-    extract(req.file, req.body.siteName);
+    deploy(req.file, req.body.siteName, req.body.buildCommand);
     
     res.json({
         "message": "Waiting for deployment"
