@@ -24,3 +24,8 @@ logs
 
 # Environment variables
 .env*
+
+# Project specific folders
+*.zip
+backend/uploads/
+backend/projects/
