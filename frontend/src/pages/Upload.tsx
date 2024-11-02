@@ -6,7 +6,7 @@ function Upload() {
   const [buildCommand, setBuildCommand] = useState<string>("");
   const [siteName, setSiteName] = useState<string>("");
   const [urlRecieved, setUrlRecieved] = useState<string>("");
-
+  const [isLoading,setIsLoading] = useState<boolean>(false);
   async function sendzipfile() {
     if (zipfile === null || buildCommand === "" || siteName === "") {
       alert("please complete information");
@@ -25,7 +25,7 @@ function Upload() {
       });
       if (response.ok) {
         const data = await response.json();
-        if (data && data.message) setUrlRecieved(data.message);
+        if (data && data.containerUrl) {setUrlRecieved(data.containerUrl);setIsLoading(false);}
       }
     } catch (error) {
       console.log(error);
@@ -69,17 +69,19 @@ function Upload() {
             />
           </div>
           <button
-            className="bg-blue-700 rounded-xl p-4"
+            className={`bg-blue-700 rounded-xl p-4 ${isLoading ? 'bg-blue-800' : 'hover:bg-blue-500'}`} 
             onClick={() => {
+              setIsLoading(true);
               sendzipfile();
             }}
+            disabled={isLoading}
           >
-            Deploy
+            {!isLoading ? "Deploy" : "Deploying..."}
           </button>
         </div>
         {urlRecieved && (
           <a href={urlRecieved} className="text-center" target="_blank">
-            {urlRecieved}
+            {siteName + ".astroCloud.com"}
           </a>
         )}
       </div>
