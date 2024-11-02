@@ -1,7 +1,10 @@
 import express from 'express';
 import cors from "cors";
 import multer from "multer";
+import { config } from 'dotenv';
 import deploy from './controller.js';
+
+config();
 
 const app = express();
 const storage = multer.diskStorage({
@@ -37,9 +40,9 @@ app.post("/upload", upload.single('zipfile'), async (req: any, res: any) => {
         });
     }
     
-    const containerUrl = `https://google.com`;
+    const containerUrl = `https://${process.env.STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${req.body.siteName}/index.html`;
     res.json({
         "success": true,
-        "containerURL": containerUrl
+        "containerUrl": containerUrl
     });
 });
