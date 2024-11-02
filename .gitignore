@@ -22,5 +22,31 @@ logs
 # Optional REPL history
 .node_repl_history
 
+# TypeScript
+dist/
+build/
+*.tsbuildinfo
+
+# TypeScript Source Maps
+*.js.map
+
+# Optional TypeScript definition files
+*.d.ts
+
+# Ignore local configuration files
+*.local
+
+# Ignore coverage reports
+coverage/
+
+# Ignore IDE configurations
+.idea/
+.vscode/
+
 # Environment variables
 .env*
+
+# Project specific folders
+*.zip
+backend/uploads/
+backend/projects/
