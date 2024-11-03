@@ -1,4 +1,6 @@
 import { BlobServiceClient } from "@azure/storage-blob";
+import { Docker } from 'node-docker-api';
+import { EventEmitter } from 'events';
 import { exec } from "child_process";
 import { fileURLToPath } from 'url';
 import path, { dirname } from "path";
@@ -23,6 +25,10 @@ interface multerFile {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(dirname(__filename));
 const execPromise = util.promisify(exec);
+const socketPath = process.platform === "win32"
+    ? "//./pipe/docker_engine"
+    : "/var/run/docker.sock";
+const docker = new Docker({ "socketPath": socketPath });
 const blobServiceClient = BlobServiceClient.fromConnectionString(
     process.env.AZURE_STORAGE_CONNECTION_STRING || "Default"
 );
@@ -66,6 +72,50 @@ const extract = async (zipfile: multerFile, projectName: string): Promise<void> 
         console.error("Extraction error:", error);
         throw new Error("Extraction failed");
     }
+}
+
+const promisifyStream = (stream: EventEmitter) => new Promise((resolve, reject) => {
+    stream.on("data", (data) => console.log(data.toString()))
+    stream.on("end", resolve)
+    stream.on("error", reject)
+});
+
+const createBuildDockerContainer = async (
+    projectName: string,
+    projectPath: string,
+    buildCommand: string
+): Promise<void> => {
+    await docker.image.create(
+        {},
+        { fromImage: 'node:18-alpine' }
+    ).then((stream) => {
+        return new Promise((resolve, reject) => {
+            docker.modem.followProgress(stream, (err: any, res: any) => (err ? reject(err) : resolve(res)));
+        });
+    });
+
+    const container = await docker.container.create({
+        Image: 'node:18-alpine',
+        name: projectName,
+        Cmd: ['sh', '-c', `cd /app/${projectName} && npm install && ${buildCommand}`],
+        HostConfig: {
+            Binds: [`${projectPath}:/app/${projectName}`],
+            AutoRemove: true
+        }
+    });
+
+    await container.start();
+
+    const stream = (await container.logs({
+        follow: true,
+        stdout: true,
+        stderr: true
+    })) as EventEmitter;
+
+    console.log("Docker run stdout: \n");
+    await promisifyStream(stream);
+
+    await container.wait();
 }
 
 // Function to create a public container
@@ -134,15 +184,11 @@ const deploy = async (zipfile: multerFile, projectName: string, buildCommand: st
         console.log("Project extraction completed");
 
         const projectPath = path.join(__dirname, "projects", projectName);
+        const projectHostPath = path.join(process.env.HOST_PROJECTS_DIR || path.join(__dirname, "projects"), projectName);
         buildCommand = await setProjectBuildBase(projectPath, buildCommand);
 
         console.log("Running Container");
-        const { stdout, stderr} = await execPromise(
-            `docker run --rm --name ${projectName} -v ${projectPath}:/${projectName} node:18-alpine ` +
-            `sh -c "cd /${projectName} && npm install && ${buildCommand}"`
-        );
-        console.log("Docker run stdout:\n", stdout);
-        if (stderr) console.error("Docker run stderr:", stderr);
+        await createBuildDockerContainer(projectName, projectHostPath, buildCommand);
         console.log("Finished running Container and dbuilding project");
         console.log("Container stopped and removed");
 
