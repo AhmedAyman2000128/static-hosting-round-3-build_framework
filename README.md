@@ -2,7 +2,7 @@
 
 A proof of concept application that automates the process of building frameworks and deploying them to Azure Blob Storage. This project consists of a React frontend for user interactions and a Node.js backend that handles file processing and Azure integration.
 
-![System Design](./build_framework)
+![System Design](./build_framework.jpg)
 
 ## Features
 
